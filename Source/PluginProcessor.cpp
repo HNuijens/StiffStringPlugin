@@ -93,8 +93,18 @@ void StiffStringPluginAudioProcessor::changeProgramName (int index, const juce::
 //==============================================================================
 void StiffStringPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    parameters.set("L", 1);
+    parameters.set("rho", 7850);
+    parameters.set("r", 0.0005);
+    parameters.set("f0", 110);
+    parameters.set("E" , 2e11);
+    parameters.set("sig0", 1);
+    parameters.set("sig1" , 0.005);
+
+    stiffString.setFs(sampleRate);
+    stiffString.setGrid(parameters);
+
+    stiffString.exciteSystem();
 }
 
 void StiffStringPluginAudioProcessor::releaseResources()
@@ -144,17 +154,32 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    // MIDI Input
+    MidiBuffer::Iterator it(midiMessages);
+    MidiMessage currentMessage;
+    int samplePos;
 
-        // ..do something to the data...
+    while (it.getNextEvent(currentMessage, samplePos))
+    {
+        if (currentMessage.isNoteOn())
+        {
+            parameters.set("f0", currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()));
+            stiffString.setGrid(parameters);
+            stiffString.exciteSystem();
+        }
+    }
+
+    for (int n = 0; n < buffer.getNumSamples(); ++n)
+    {
+        auto outL = buffer.getWritePointer(0);
+        auto outR = buffer.getWritePointer(1);
+
+        float out = 0.f;
+        out = stiffString.getNextSample(0.2);
+
+        out = limit(out);
+        outL[n] = out;
+        outR[n] = out;
     }
 }
 
@@ -188,4 +213,11 @@ void StiffStringPluginAudioProcessor::setStateInformation (const void* data, int
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new StiffStringPluginAudioProcessor();
+}
+
+double StiffStringPluginAudioProcessor::limit(double in)
+{
+    if (in < -1.0) return -1.0;
+    else if (in > 1.0) return 1.0;
+    else return in;
 }
