@@ -25,12 +25,9 @@ public:
     void setFs(double Fs);
     void setGrid(NamedValueSet& parameters);
     double getNextSample(float outputPos);
-    void exciteSystem();
+    void exciteSystem(double amp, float pos, int width, bool strike);
    
-
-    
     double Fs = 48000.0;
-
 
 private:
     void calculateScheme();

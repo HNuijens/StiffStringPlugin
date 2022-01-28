@@ -58,7 +58,6 @@ void StiffString::setGrid(NamedValueSet& parameters)
     for (int i = 0; i < u.size(); ++i)
         u[i] = &uStates[i][0];
 
-
     // Calculate Stencil factors:
     lambdaSq = k * k * c * c / (h * h);
     S0 = sig0 * k;                              // freq ind damping factor
@@ -75,7 +74,6 @@ void StiffString::setGrid(NamedValueSet& parameters)
 
 double StiffString::getNextSample(float outputPos)
 {
-    // update the states
     calculateScheme();
 
     double out = u[0][static_cast<int> (round(outputPos * N))];
@@ -96,15 +94,30 @@ void StiffString::calculateScheme()
 
 void StiffString::updateStates()
 {
+    // Pointer switch
     double* uTmp = u[2];
     u[2] = u[1];
     u[1] = u[0];
     u[0] = uTmp;
 }
 
-void StiffString::exciteSystem()
+void StiffString::exciteSystem(double amp, float pos, int width, bool strike)
 {
-    u[1][2] = 1;
-    u[2][2] = 1;
-   
+    //// Excitation using a Hann window/ raised cosine ////
+    
+    if (strike) amp *= 1.0 / (width * 0.7); // prevent distortion of sound when striking
+    if (amp > 1.0) amp = 1.0; 
+
+    int startPos = floor(pos * N - width * 0.5);
+    if (startPos < 1) startPos = 1;
+    for (int w = startPos; w < startPos + width; w++)
+    {
+        if (w > (N - 2)) break;
+        else
+        {
+            if (!strike)
+                u[1][w] = 0.5 * amp * (1 - cos((2 * double_Pi * (w - startPos)) / width));
+            u[2][w] = 0.5 * amp * (1 - cos((2 * double_Pi * (w - startPos)) / width));
+        }
+    }
 }

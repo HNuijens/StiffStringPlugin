@@ -94,17 +94,15 @@ void StiffStringPluginAudioProcessor::changeProgramName (int index, const juce::
 void StiffStringPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     parameters.set("L", 1);
-    parameters.set("rho", 7850);
-    parameters.set("r", 0.0005);
+    parameters.set("rho", 8860);
+    parameters.set("r", 0.00005);
     parameters.set("f0", 110);
     parameters.set("E" , 2e11);
-    parameters.set("sig0", 1);
+    parameters.set("sig0", 0.9);
     parameters.set("sig1" , 0.005);
 
     stiffString.setFs(sampleRate);
     stiffString.setGrid(parameters);
-
-    stiffString.exciteSystem();
 }
 
 void StiffStringPluginAudioProcessor::releaseResources()
@@ -163,9 +161,14 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     {
         if (currentMessage.isNoteOn())
         {
-            parameters.set("f0", currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()));
-            stiffString.setGrid(parameters);
-            stiffString.exciteSystem();
+            if (currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()) != f0)
+            {
+                f0 = currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber());
+                parameters.set("f0", f0);
+                stiffString.setGrid(parameters);
+            }
+
+            stiffString.exciteSystem(1, 0.3, 15, false);
         }
     }
 

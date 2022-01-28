@@ -57,6 +57,8 @@ public:
     NamedValueSet parameters;
 
 private:
+    double f0; 
+
     StiffString stiffString;
 
     double limit(double in);
