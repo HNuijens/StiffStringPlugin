@@ -12,16 +12,82 @@
 //==============================================================================
 StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    )
 #endif
 {
+#ifdef NOEDITOR
+    addParameter(fundFreq = new AudioParameterFloat("fundamentalFreq", // parameter ID
+        "Fundamental Frequency", // parameter name
+        20.0f,          // minimum value
+        10000.0f,       // maximum value
+        220));          // default value
+
+    addParameter(sigma0 = new AudioParameterFloat("sigma0", // parameter ID
+        "sigma 0", // parameter name
+        0.0f,          // minimum value
+        5.0f,       // maximum value
+        1.0));          // default value
+
+    addParameter(sigma1 = new AudioParameterFloat("sigma1", // parameter ID
+        "sigma 1", // parameter name
+        0.0f,          // minimum value
+        1.0f,       // maximum value
+        0.0005));          // default value
+
+    addParameter(radius = new AudioParameterFloat("radius", // parameter ID
+        "radius", // parameter name
+        0.00001f,          // minimum value
+        0.001f,       // maximum value
+        0.00005));          // default value
+
+    addParameter(density = new AudioParameterFloat("density", // parameter ID
+        "density", // parameter name
+        1000.0f,          // minimum value
+        10000.00f,       // maximum value
+        8860.0));          // default value
+
+    addParameter(amplitude = new AudioParameterFloat("amplitude", // parameter ID
+        "amplitude", // parameter name
+        0.0f,          // minimum value
+        1.0f,       // maximum value
+        1.0f));          // default value
+
+    addParameter(position = new AudioParameterFloat("position", // parameter ID
+        "position", // parameter name
+        0.0f,          // minimum value
+        1.0f,       // maximum value
+        0.3f));          // default value
+
+    addParameter(width = new AudioParameterInt("width", // parameter ID
+        "width", // parameter name
+        0.0f,          // minimum value
+        30.0f,       // maximum value
+        15));          // default value
+
+    addParameter(strike = new AudioParameterBool("strike", // parameter ID
+        "strike", // parameter name
+        false   // default value
+    )); // default value
+
+    addParameter(excited = new AudioParameterBool("excited", // parameter ID
+        "excited", // parameter name
+        false   // default value
+    )); // default value
+
+    addParameter(paramChanged = new AudioParameterBool("paramChanged", // parameter ID
+        "parameter changed", // parameter name
+        true   // default value
+    )); // default value
+
+
+#endif
 }
 
 StiffStringPluginAudioProcessor::~StiffStringPluginAudioProcessor()
@@ -137,10 +203,10 @@ bool StiffStringPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout&
 }
 #endif
 
-void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     // In case we have more outputs than inputs, this code clears any output
@@ -150,7 +216,7 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, buffer.getNumSamples());
 
     // MIDI Input
     MidiBuffer::Iterator it(midiMessages);
@@ -161,16 +227,52 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     {
         if (currentMessage.isNoteOn())
         {
-            if (currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()) != f0)
-            {
-                f0 = currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber());
-                parameters.set("f0", f0);
-                stiffString.setGrid(parameters);
-            }
 
-            stiffString.exciteSystem(1, 0.3, 15, false);
+            //f0 = currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber());
+            parameters.set("f0", currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()));
+            stiffString.setGrid(parameters);
+
+
+            stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
         }
     }
+#ifdef NOEDITOR
+
+    if (*excited)
+    {
+        stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
+        *excited = false;
+    }
+
+    if (f0 != *fundFreq)
+    {
+        f0 = *fundFreq;
+        stiffString.setGrid(parameters);
+    }
+
+    if (*paramChanged)
+    {
+        double sig0 = *sigma0;
+        double sig1 = *sigma1;
+        double rho = *density;
+        double rad = *radius;
+
+        parameters.set("rho", rho);
+        parameters.set("r", rad);
+        parameters.set("sig0", sig0);
+        parameters.set("sig1", sig1);
+
+        eAmp = *amplitude;
+        ePos = *position;
+        eWidth = *width;
+        isStriked = *strike;
+
+        *paramChanged = false;
+    }
+
+
+
+#endif // NOEDITOR
 
     for (int n = 0; n < buffer.getNumSamples(); ++n)
     {
@@ -178,6 +280,7 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
         auto outR = buffer.getWritePointer(1);
 
         float out = 0.f;
+
         out = stiffString.getNextSample(0.2);
 
         out = limit(out);
@@ -189,7 +292,11 @@ void StiffStringPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
 //==============================================================================
 bool StiffStringPluginAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+#ifdef NOEDITOR
+    return false;
+#else
+    return true;
+#endif
 }
 
 juce::AudioProcessorEditor* StiffStringPluginAudioProcessor::createEditor()

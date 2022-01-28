@@ -43,9 +43,9 @@ void StiffString::setGrid(NamedValueSet& parameters)
     c = f0 * 2.0 * L;
 
     // Create Grid:
-    kappaSq = E * I / rho * A;
+    kappaSq = E * I / (rho * A);
     double stabTmp = c * c * k * k + 4.0 * sig1 * k;
-    h = sqrt(0.5 * (stabTmp + sqrt(stabTmp * stabTmp + 16.0 * kappaSq * k * k)));
+    h = sqrt(0.5 * (stabTmp + sqrt((stabTmp * stabTmp) + 16.0 * kappaSq * k * k)));
     N = floor(L / h);
     h = L / N;
 

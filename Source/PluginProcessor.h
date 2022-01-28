@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include "StiffString.h"
 
+#define NOEDITOR
+
 //==============================================================================
 /**
 */
@@ -59,7 +61,30 @@ public:
 private:
     double f0; 
 
+
+#ifdef NOEDITOR
+    // AudioParameters:
+    AudioParameterFloat* fundFreq;
+    AudioParameterFloat* sigma0;
+    AudioParameterFloat* sigma1;
+    AudioParameterFloat* radius;
+    AudioParameterFloat* density;
+    // excitation
+    AudioParameterFloat* amplitude;
+    AudioParameterFloat* position;
+    AudioParameterInt* width;
+    AudioParameterBool* strike;
+
+    AudioParameterBool* excited;
+    AudioParameterBool* paramChanged;
+#endif // NOEDITOR
+
+    // String
     StiffString stiffString;
+
+    double ePos, eAmp;
+    int eWidth;
+    bool isStriked; 
 
     double limit(double in);
     //==============================================================================
