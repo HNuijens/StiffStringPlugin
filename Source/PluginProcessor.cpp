@@ -27,31 +27,31 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         "Fundamental Frequency", // parameter name
         20.0f,          // minimum value
         10000.0f,       // maximum value
-        220));          // default value
+        220.0f));          // default value
 
     addParameter(sigma0 = new AudioParameterFloat("sigma0", // parameter ID
         "sigma 0", // parameter name
-        0.0f,          // minimum value
-        5.0f,       // maximum value
-        1.0));          // default value
+        0.000f,          // minimum value
+        5.000f,       // maximum value
+        1.00f));          // default value
 
     addParameter(sigma1 = new AudioParameterFloat("sigma1", // parameter ID
         "sigma 1", // parameter name
-        0.0f,          // minimum value
-        1.0f,       // maximum value
-        0.0005));          // default value
+        0.00000f,          // minimum value
+        0.10000f,       // maximum value
+        0.00050f));          // default value
 
     addParameter(radius = new AudioParameterFloat("radius", // parameter ID
-        "radius", // parameter name
-        0.00001f,          // minimum value
-        0.001f,       // maximum value
-        0.00005));          // default value
+        "radius in mm", // parameter name
+        0.001000f,          // minimum value
+        10.00000f,       // maximum value
+        0.500000f));          // default value
 
     addParameter(density = new AudioParameterFloat("density", // parameter ID
         "density", // parameter name
-        1000.0f,          // minimum value
-        10000.00f,       // maximum value
-        8860.0));          // default value
+        100.00000f,          // minimum value
+        100000.00f,       // maximum value
+        8860.0000f));          // default value
 
     addParameter(amplitude = new AudioParameterFloat("amplitude", // parameter ID
         "amplitude", // parameter name
@@ -83,7 +83,7 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
 
     addParameter(paramChanged = new AudioParameterBool("paramChanged", // parameter ID
         "parameter changed", // parameter name
-        true   // default value
+        false   // default value
     )); // default value
 
 
@@ -159,15 +159,15 @@ void StiffStringPluginAudioProcessor::changeProgramName (int index, const juce::
 //==============================================================================
 void StiffStringPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    parameters.set("L", 1);
-    parameters.set("rho", 8860);
-    parameters.set("r", 0.00005);
-    parameters.set("f0", 110);
-    parameters.set("E" , 2e11);
-    parameters.set("sig0", 0.9);
-    parameters.set("sig1" , 0.005);
-
     stiffString.setFs(sampleRate);
+
+    f0 = *fundFreq;
+    parameters.set("L", 1.0);
+    parameters.set("E", 2e11);
+    parameters.set("f0", f0);
+
+    updateParameters();
+
     stiffString.setGrid(parameters);
 }
 
@@ -223,6 +223,7 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     MidiMessage currentMessage;
     int samplePos;
 
+#ifdef MIDIINPUT
     while (it.getNextEvent(currentMessage, samplePos))
     {
         if (currentMessage.isNoteOn())
@@ -232,45 +233,33 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
             parameters.set("f0", currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()));
             stiffString.setGrid(parameters);
 
-
             stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
         }
     }
+#endif
 #ifdef NOEDITOR
 
     if (*excited)
     {
+        if (f0 != *fundFreq)
+        {
+            f0 = *fundFreq;
+            parameters.set("f0", f0);
+            stiffString.setGrid(parameters);
+        }
+
         stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
         *excited = false;
     }
 
-    if (f0 != *fundFreq)
-    {
-        f0 = *fundFreq;
-        stiffString.setGrid(parameters);
-    }
-
     if (*paramChanged)
     {
-        double sig0 = *sigma0;
-        double sig1 = *sigma1;
-        double rho = *density;
-        double rad = *radius;
-
-        parameters.set("rho", rho);
-        parameters.set("r", rad);
-        parameters.set("sig0", sig0);
-        parameters.set("sig1", sig1);
-
-        eAmp = *amplitude;
-        ePos = *position;
-        eWidth = *width;
-        isStriked = *strike;
-
+        updateParameters();
+        stiffString.setGrid(parameters);
         *paramChanged = false;
     }
 
-
+    if (ePos != *position) ePos = *position; 
 
 #endif // NOEDITOR
 
@@ -330,4 +319,22 @@ double StiffStringPluginAudioProcessor::limit(double in)
     if (in < -1.0) return -1.0;
     else if (in > 1.0) return 1.0;
     else return in;
+}
+
+void StiffStringPluginAudioProcessor::updateParameters()
+{
+    double sig0 = *sigma0;
+    double sig1 = *sigma1;
+    double rho = *density;
+    double rad = *radius * 0.001; // transforms radius from mm to m 
+
+    parameters.set("rho", rho);
+    parameters.set("r", rad);
+    parameters.set("sig0", sig0);
+    parameters.set("sig1", sig1);
+
+    eAmp = *amplitude;
+    ePos = *position;
+    eWidth = *width;
+    isStriked = *strike;
 }

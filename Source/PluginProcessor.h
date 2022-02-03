@@ -12,6 +12,7 @@
 #include "StiffString.h"
 
 #define NOEDITOR
+//#define MIDIINPUT
 
 //==============================================================================
 /**
@@ -59,8 +60,8 @@ public:
     NamedValueSet parameters;
 
 private:
-    double f0; 
-
+    double f0 = 220.0f;
+    void updateParameters();
 
 #ifdef NOEDITOR
     // AudioParameters:

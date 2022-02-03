@@ -65,7 +65,7 @@ void StiffString::setGrid(NamedValueSet& parameters)
     K = -kappaSq * k * k / (h * h * h * h);     // stiffness factor
     D = 1 / (1 + S0);                           // fraction due to freq. indep. damping term
 
-    G0_0 = (2 + -2 * lambdaSq + 6 * K - 2 * S1) * D;    // u_l^ n
+    G0_0 = (2 -2 * lambdaSq + 6 * K - 2 * S1) * D;      // u_l^ n
     G0_1 = (lambdaSq - 4 * K + S1) * D;                 // u_l -/+1 ^ n
     G0_2 = K * D;                                       // u_l -/+2 ^ n
     G1_0 = (-1 + S0 + 2 * S1) * D;                      // u_l^ n - 1
@@ -89,6 +89,7 @@ void StiffString::calculateScheme()
     {
         u[0][l] = G0_0 * u[1][l] + G0_1 * (u[1][l - 1] + u[1][l + 1]) + G0_2 * (u[1][l - 2] + u[1][l + 2]) 
             + G1_0 * u[2][l] + G1_1 * (u[2][l - 1] + u[2][l + 1]);
+        // kijk even naar simply supported bounderies, blz 78...
     }
 }
 
