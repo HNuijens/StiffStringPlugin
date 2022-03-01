@@ -89,7 +89,12 @@ void StiffString::calculateScheme()
     {
         u[0][l] = G0_0 * u[1][l] + G0_1 * (u[1][l - 1] + u[1][l + 1]) + G0_2 * (u[1][l - 2] + u[1][l + 2]) 
             + G1_0 * u[2][l] + G1_1 * (u[2][l - 1] + u[2][l + 1]);
-        // kijk even naar simply supported bounderies, blz 78...
+       
+        // simply supported boundey condition: 
+        u[0][1] = G0_0 * u[1][1] + G0_1 * (u[1][2]) + G0_2 * (u[1][3]) 
+            + G1_0 * u[2][1] + G1_1 * (u[2][2]);
+        u[0][N - 1] = G0_0 * u[1][N - 1] + G0_1 * (u[1][N - 2]) + G0_2 * (u[1][N - 3]) 
+            + G1_0 * u[2][N - 1] + G1_1 * (u[2][N - 2]);
     }
 }
 

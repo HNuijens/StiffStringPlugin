@@ -161,7 +161,11 @@ void StiffStringPluginAudioProcessor::prepareToPlay (double sampleRate, int samp
 {
     stiffString.setFs(sampleRate);
 
+#ifdef NOEDITOR
     f0 = *fundFreq;
+#endif // NOEDITOR
+
+    
     parameters.set("L", 1.0);
     parameters.set("E", 2e11);
     parameters.set("f0", f0);
@@ -228,8 +232,7 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     {
         if (currentMessage.isNoteOn())
         {
-
-            //f0 = currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber());
+            f0 = currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber());
             parameters.set("f0", currentMessage.getMidiNoteInHertz(currentMessage.getNoteNumber()));
             stiffString.setGrid(parameters);
 
@@ -323,6 +326,7 @@ double StiffStringPluginAudioProcessor::limit(double in)
 
 void StiffStringPluginAudioProcessor::updateParameters()
 {
+#ifdef NOEDITOR
     double sig0 = *sigma0;
     double sig1 = *sigma1;
     double rho = *density;
@@ -337,4 +341,5 @@ void StiffStringPluginAudioProcessor::updateParameters()
     ePos = *position;
     eWidth = *width;
     isStriked = *strike;
+#endif // 
 }
