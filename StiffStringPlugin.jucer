@@ -14,6 +14,8 @@
       <FILE id="vqyHzw" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="pApXIE" name="StiffString.cpp" compile="1" resource="0" file="Source/StiffString.cpp"/>
       <FILE id="S6sWpi" name="StiffString.h" compile="0" resource="0" file="Source/StiffString.h"/>
+      <FILE id="CuWb2N" name="Bow.cpp" compile="1" resource="0" file="Source/Bow.cpp"/>
+      <FILE id="XgAWXl" name="Bow.h" compile="0" resource="0" file="Source/Bow.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
