@@ -255,7 +255,7 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     }
     if (*excitationType > 0.66f)
     {
-        eType = "stricked";
+        eType = "striked";
         stiffString.bowed = false;
         isStriked = true; 
     }
