@@ -70,6 +70,16 @@ void StiffString::setGrid(NamedValueSet& parameters)
     G0_2 = K * D;                                       // u_l -/+2 ^ n
     G1_0 = (-1 + S0 + 2 * S1) * D;                      // u_l^ n - 1
     G1_1 = -S1 * D;                                     // u_l -/+1 ^ n - 1
+
+    // Add bow parameters
+    bowParameters = parameters; 
+    bowParameters.set("kappaSq", kappaSq);
+    bowParameters.set("cSq", c * c);
+    bowParameters.set("h", h);
+    bowParameters.set("k", k);
+    bowParameters.set("N", N);
+
+    bow.setBowParams(bowParameters);
 }
 
 double StiffString::getNextSample(float outputPos)
@@ -89,13 +99,16 @@ void StiffString::calculateScheme()
     {
         u[0][l] = G0_0 * u[1][l] + G0_1 * (u[1][l - 1] + u[1][l + 1]) + G0_2 * (u[1][l - 2] + u[1][l + 2]) 
             + G1_0 * u[2][l] + G1_1 * (u[2][l - 1] + u[2][l + 1]);
-       
-        // simply supported boundey condition: 
-        u[0][1] = G0_0 * u[1][1] + G0_1 * (u[1][2]) + G0_2 * (u[1][3]) 
-            + G1_0 * u[2][1] + G1_1 * (u[2][2]);
-        u[0][N - 1] = G0_0 * u[1][N - 1] + G0_1 * (u[1][N - 2]) + G0_2 * (u[1][N - 3]) 
-            + G1_0 * u[2][N - 1] + G1_1 * (u[2][N - 2]);
     }
+
+    // Simply supported boundery condition: 
+    u[0][1] = G0_0 * u[1][1] + G0_1 * (u[1][2]) + G0_2 * (u[1][3])
+        + G1_0 * u[2][1] + G1_1 * (u[2][2]);
+    u[0][N - 1] = G0_0 * u[1][N - 1] + G0_1 * (u[1][N - 2]) + G0_2 * (u[1][N - 3])
+        + G1_0 * u[2][N - 1] + G1_1 * (u[2][N - 2]);
+
+    // Bow string
+    if(bowed)bow.setExcitation(u, ePos);
 }
 
 void StiffString::updateStates()

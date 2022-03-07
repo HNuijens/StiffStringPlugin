@@ -53,6 +53,12 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         100000.00f,       // maximum value
         8860.0000f));          // default value
 
+    addParameter(excitationType = new AudioParameterFloat("excitationType", // parameter ID
+        "excitation Type", // parameter name
+        0.0f,          // minimum value
+        1.0f,       // maximum value
+        1.0f));          // default value
+
     addParameter(amplitude = new AudioParameterFloat("amplitude", // parameter ID
         "amplitude", // parameter name
         0.0f,          // minimum value
@@ -70,11 +76,6 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         0.0f,          // minimum value
         30.0f,       // maximum value
         15));          // default value
-
-    addParameter(strike = new AudioParameterBool("strike", // parameter ID
-        "strike", // parameter name
-        false   // default value
-    )); // default value
 
     addParameter(excited = new AudioParameterBool("excited", // parameter ID
         "excited", // parameter name
@@ -241,6 +242,23 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     }
 #endif
 #ifdef NOEDITOR
+    if (*excitationType <= 0.33f)
+    {
+        eType = "plucked";
+        stiffString.bowed = false;
+        isStriked = false;
+    }
+    if (*excitationType > 0.33f && *excitationType <= 0.66f)
+    {
+        eType = "bowed";
+        isStriked = false; 
+    }
+    if (*excitationType > 0.66f)
+    {
+        eType = "stricked";
+        stiffString.bowed = false;
+        isStriked = true; 
+    }
 
     if (*excited)
     {
@@ -250,9 +268,18 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
             parameters.set("f0", f0);
             stiffString.setGrid(parameters);
         }
+        
+        if (eType == "bowed")
+        {
+            stiffString.bowed = true;
+            stiffString.ePos = *position;
+        }
 
-        stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
-        *excited = false;
+        if (eType == "plucked" || eType == "striked")
+        {
+            stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
+            *excited = false;
+        }
     }
 
     if (*paramChanged)
@@ -340,6 +367,5 @@ void StiffStringPluginAudioProcessor::updateParameters()
     eAmp = *amplitude;
     ePos = *position;
     eWidth = *width;
-    isStriked = *strike;
 #endif // 
 }

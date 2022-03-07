@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include <cmath>
 #include <vector>
+#include "Bow.h"
+
 using namespace std;
 
 #pragma once
@@ -29,11 +31,12 @@ public:
    
     double Fs = 48000.0;
 
+    float ePos;
+    bool bowed = false; 
 private:
     void calculateScheme();
     void updateStates();
    
-
 
     double h, k, L, c, f0, r, A, I, E, rho, sig0, sig1, kappaSq, lambdaSq;  // parameters
     double S0, S1, K, D, G0_0, G0_1, G0_2, G1_0, G1_1;                      // Stencil factors
@@ -41,5 +44,7 @@ private:
 
     vector<vector<double>> uStates;                                         // vector containing the grid states
     vector<double*> u;                                                      // vector with pointers to the grid states
-
+   
+    NamedValueSet bowParameters;
+    Bow bow;
 };

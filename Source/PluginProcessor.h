@@ -71,10 +71,10 @@ private:
     AudioParameterFloat* radius;
     AudioParameterFloat* density;
     // excitation
+    AudioParameterFloat* excitationType; 
     AudioParameterFloat* amplitude;
     AudioParameterFloat* position;
     AudioParameterInt* width;
-    AudioParameterBool* strike;
 
     AudioParameterBool* excited;
     AudioParameterBool* paramChanged;
@@ -86,6 +86,8 @@ private:
     double ePos, eAmp;
     int eWidth;
     bool isStriked; 
+
+    string eType = "plucked"; // excitation type
 
     double limit(double in);
     //==============================================================================
