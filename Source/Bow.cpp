@@ -11,7 +11,7 @@
 
 Bow::Bow()
 {
-    fb = 10000;         // Bow force in N
+    fb = 1;             // Bow force in N
     Fb = 0;             // Bow force on string
     vb = 0;             // Bow velocity
     xb = 0;             // Bow position
@@ -48,13 +48,14 @@ void Bow::setBowParams(NamedValueSet& parameters)
     GI1_1 = (2.0 * sig1 / (k * h * h));
 }
 
-void Bow::setExcitation(std::vector<double*>& u, float bowPosition)
+void Bow::setExcitation(std::vector<double*>& u, float bowPosition, double bowVelocity)
 {
     xb = floor(bowPosition * N); 
     if (xb > N - 2) xb = N - 2;
     if (xb  < 2) xb = 2;
 
-    vb = 0.2 * sin(12 * double_Pi * t / Fs);
+    vb = bowVelocity;
+    // vb = 0.2 * sin(12 * double_Pi * t / Fs);
 
     double b = vb * (2.0 / k + sig0 * 2.0) + GI0_0 * u[1][xb] + GI0_1 * u[1][xb + 1] + GI0_1 * u[1][xb - 1] +
         GI0_2 * u[1][xb + 2] + GI0_2 * u[1][xb - 2] +
@@ -64,7 +65,7 @@ void Bow::setExcitation(std::vector<double*>& u, float bowPosition)
     vRel = NewtonRaphson(maxIter, eps, b);
 
     // Apply excitation
-    double excitation = k * k * (1.0 / h) * Fb * sqrt(2.0 * a) * vRel * exp(-a * vRel * vRel + 0.5);
+    double excitation = (k * k / (rho * A * h * (1.0 + sig0 * k))) * Fb * sqrt(2.0 * a) * vRel * exp(-a * vRel * vRel + 0.5);
     u[0][xb] -= excitation; // add bow excitation to the grid point
     t++; 
 }

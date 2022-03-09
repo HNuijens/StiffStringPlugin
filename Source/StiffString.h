@@ -33,6 +33,7 @@ public:
 
     float ePos;
     bool bowed = false; 
+    double vb = 0; // bow velocity
 private:
     void calculateScheme();
     void updateStates();

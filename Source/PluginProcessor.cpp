@@ -39,31 +39,31 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         "sigma 1", // parameter name
         0.00000f,          // minimum value
         0.10000f,       // maximum value
-        0.00050f));          // default value
+        0.0050f));          // default value
 
     addParameter(radius = new AudioParameterFloat("radius", // parameter ID
         "radius in mm", // parameter name
         0.001000f,          // minimum value
         10.00000f,       // maximum value
-        0.500000f));          // default value
+        0.400000f));          // default value
 
     addParameter(density = new AudioParameterFloat("density", // parameter ID
         "density", // parameter name
         100.00000f,          // minimum value
         100000.00f,       // maximum value
-        8860.0000f));          // default value
+        7850.0000f));          // default value
 
     addParameter(excitationType = new AudioParameterFloat("excitationType", // parameter ID
         "excitation Type", // parameter name
         0.0f,          // minimum value
         1.0f,       // maximum value
-        1.0f));          // default value
+        0.0f));          // default value
 
-    addParameter(amplitude = new AudioParameterFloat("amplitude", // parameter ID
-        "amplitude", // parameter name
-        0.0f,          // minimum value
+    addParameter(bowVelocity = new AudioParameterFloat("bowVelocity", // parameter ID
+        "bow Velocity", // parameter name
+        -1.0f,          // minimum value
         1.0f,       // maximum value
-        1.0f));          // default value
+        0.0f));          // default value
 
     addParameter(position = new AudioParameterFloat("position", // parameter ID
         "position", // parameter name
@@ -271,6 +271,7 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
         
         if (eType == "bowed")
         {
+            stiffString.vb = *bowVelocity;
             stiffString.bowed = true;
             stiffString.ePos = *position;
         }
@@ -364,7 +365,6 @@ void StiffStringPluginAudioProcessor::updateParameters()
     parameters.set("sig0", sig0);
     parameters.set("sig1", sig1);
 
-    eAmp = *amplitude;
     ePos = *position;
     eWidth = *width;
 #endif // 

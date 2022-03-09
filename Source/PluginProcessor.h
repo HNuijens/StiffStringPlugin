@@ -72,7 +72,7 @@ private:
     AudioParameterFloat* density;
     // excitation
     AudioParameterFloat* excitationType; 
-    AudioParameterFloat* amplitude;
+    AudioParameterFloat* bowVelocity;
     AudioParameterFloat* position;
     AudioParameterInt* width;
 
@@ -83,7 +83,8 @@ private:
     // String
     StiffString stiffString;
 
-    double ePos, eAmp;
+    double ePos;
+    double eAmp = 1.0f;
     int eWidth;
     bool isStriked; 
 

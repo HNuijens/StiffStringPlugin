@@ -108,7 +108,7 @@ void StiffString::calculateScheme()
         + G1_0 * u[2][N - 1] + G1_1 * (u[2][N - 2]);
 
     // Bow string
-    if(bowed)bow.setExcitation(u, ePos);
+    if(bowed)bow.setExcitation(u, ePos, vb);
 }
 
 void StiffString::updateStates()
