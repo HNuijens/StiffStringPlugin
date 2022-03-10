@@ -23,7 +23,7 @@ public:
 
     double vb; 
 private:
-    double fb, Fb, vRel, a, eps;                    // Bow parameters
+    double fb, Fb, vRel, a, eps, BM;                    // Bow parameters
     int xb;                                             // Bow position
     double sig0, sig1, k, h, rho, r, A, kappaSq, cSq;   // Grid parameters
     double GI0_0, GI0_1, GI0_2, GI1_0, GI1_1;           // Intermediate grid values

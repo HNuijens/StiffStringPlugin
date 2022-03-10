@@ -11,11 +11,12 @@
 
 Bow::Bow()
 {
-    fb = 1;             // Bow force in N
-    Fb = 0;             // Bow force on string
-    vb = 0;             // Bow velocity
-    xb = 0;             // Bow position
-    a = 100;            // frcition model scaler
+    fb = 1.0;             // Bow force in N
+    Fb = 0.0;             // Bow force on string
+    vb = 0.0;             // Bow velocity
+    xb = 0.0;             // Bow position
+    a = 100;              // frcition model scaler
+    BM = sqrt(2.0 * a) * exp(0.5);  // Bow model
     maxIter = 100;      // Newton-Raphson  max number of iteration
     eps = 1e-7;         // Newton-Raphson threshold
 }
@@ -34,7 +35,7 @@ void Bow::setBowParams(NamedValueSet& parameters)
     sig0 = *parameters.getVarPointer("sig0");
     sig1 = *parameters.getVarPointer("sig1");
     k = *parameters.getVarPointer("k");
-    Fs = 1 / k; 
+    Fs = 1.0 / k; 
     h = *parameters.getVarPointer("h");
     kappaSq = *parameters.getVarPointer("kappaSq");
     cSq = *parameters.getVarPointer("cSq");
@@ -65,7 +66,7 @@ void Bow::setExcitation(std::vector<double*>& u, float bowPosition, double bowVe
     vRel = NewtonRaphson(maxIter, eps, b);
 
     // Apply excitation
-    double excitation = (k * k / (rho * A * h * (1.0 + sig0 * k))) * Fb * sqrt(2.0 * a) * vRel * exp(-a * vRel * vRel + 0.5);
+    double excitation = (k * k / (rho * A * h * (1.0 + sig0 * k))) * fb * sqrt(2.0 * a) * vRel * exp(-a * vRel * vRel + 0.5);
     u[0][xb] -= excitation; // add bow excitation to the grid point
     t++; 
 }
@@ -78,9 +79,9 @@ double Bow::NewtonRaphson(int maxIterations, double threshold, double b)
     for (int i = 0; i < maxIterations; i++)
     {
         double mu = sqrt(2.0 * a) * vRelPrev * exp(-a * vRelPrev * vRelPrev + 0.5);
-        double g = vRelPrev * (2.0 / k + 2.0 * sig0) + Fb * mu + b;
-        double dg_dvRel = 2.0 / k + 2.0 * sig0 + Fb * sqrt(2.0 * a) * (1.0 - 2.0 * a * vRelPrev * vRelPrev) * exp(-a * vRelPrev * vRelPrev + 0.5);
-
+        double g = g = vRelPrev * 2 / k + 2 * sig0 * vRelPrev + (1 / h) * Fb * BM * vRelPrev * exp(-a * vRelPrev * vRelPrev) + b;
+        double dg_dvRel = 2 / k + 2 * sig0 + (1 / h) * Fb * BM * (1 - 2 * a * vRelPrev * vRelPrev) * exp(-a * vRelPrev * vRelPrev);
+       
         vRel = vRelPrev - (g / dg_dvRel);
 
         if (std::abs(vRel - vRelPrev) < eps)

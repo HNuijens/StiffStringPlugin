@@ -87,7 +87,7 @@ double StiffString::getNextSample(float outputPos)
     calculateScheme();
 
     double out = u[0][static_cast<int> (round(outputPos * N))];
-
+    if (bowed) out = out * 100;  // scale if non linear input 
     updateStates();
 
     return out; 

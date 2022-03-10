@@ -45,7 +45,7 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         "radius in mm", // parameter name
         0.001000f,          // minimum value
         10.00000f,       // maximum value
-        0.400000f));          // default value
+        0.500000f));          // default value
 
     addParameter(density = new AudioParameterFloat("density", // parameter ID
         "density", // parameter name
