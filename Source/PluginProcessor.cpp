@@ -71,11 +71,11 @@ StiffStringPluginAudioProcessor::StiffStringPluginAudioProcessor()
         1.0f,       // maximum value
         0.3f));          // default value
 
-    addParameter(width = new AudioParameterInt("width", // parameter ID
-        "width", // parameter name
-        0.0f,          // minimum value
-        30.0f,       // maximum value
-        15));          // default value
+    //addParameter(width = new AudioParameterInt("width", // parameter ID
+    //    "width", // parameter name
+    //    0.0f,          // minimum value
+    //    30.0f,       // maximum value
+    //    15));          // default value
 
     addParameter(excited = new AudioParameterBool("excited", // parameter ID
         "excited", // parameter name
@@ -166,7 +166,6 @@ void StiffStringPluginAudioProcessor::prepareToPlay (double sampleRate, int samp
     f0 = *fundFreq;
 #endif // NOEDITOR
 
-    
     parameters.set("L", 1.0);
     parameters.set("E", 2e11);
     parameters.set("f0", f0);
@@ -242,23 +241,6 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     }
 #endif
 #ifdef NOEDITOR
-    if (*excitationType <= 0.33f)
-    {
-        eType = "plucked";
-        stiffString.bowed = false;
-        isStriked = false;
-    }
-    if (*excitationType > 0.33f && *excitationType <= 0.66f)
-    {
-        eType = "bowed";
-        isStriked = false; 
-    }
-    if (*excitationType > 0.66f)
-    {
-        eType = "striked";
-        stiffString.bowed = false;
-        isStriked = true; 
-    }
 
     if (*excited)
     {
@@ -281,6 +263,11 @@ void StiffStringPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
             stiffString.exciteSystem(eAmp, ePos, eWidth, isStriked);
             *excited = false;
         }
+    }
+
+    if (!*excited && eType == "bowed")
+    {
+        stiffString.vb = 0.0; 
     }
 
     if (*paramChanged)
@@ -355,6 +342,25 @@ double StiffStringPluginAudioProcessor::limit(double in)
 void StiffStringPluginAudioProcessor::updateParameters()
 {
 #ifdef NOEDITOR
+
+    if (*excitationType <= 0.33f)
+    {
+        eType = "plucked";
+        stiffString.bowed = false;
+        isStriked = false;
+    }
+    if (*excitationType > 0.33f && *excitationType <= 0.66f)
+    {
+        eType = "bowed";
+        isStriked = false;
+    }
+    if (*excitationType > 0.66f)
+    {
+        eType = "striked";
+        stiffString.bowed = false;
+        isStriked = true;
+    }
+
     double sig0 = *sigma0;
     double sig1 = *sigma1;
     double rho = *density;
@@ -366,6 +372,5 @@ void StiffStringPluginAudioProcessor::updateParameters()
     parameters.set("sig1", sig1);
 
     ePos = *position;
-    eWidth = *width;
 #endif // 
 }

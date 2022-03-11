@@ -87,7 +87,7 @@ double StiffString::getNextSample(float outputPos)
     calculateScheme();
 
     double out = u[0][static_cast<int> (round(outputPos * N))];
-    if (bowed) out = out * 100;  // scale if non linear input 
+    out = out * eScalar;  // scale to make excitaiton audible 
     updateStates();
 
     return out; 
@@ -134,9 +134,10 @@ void StiffString::exciteSystem(double amp, float pos, int width, bool strike)
         if (w > (N - 2)) break;
         else
         {
+            u[2][w] = 0.5 * amp * (1 - cos((2 * double_Pi * (w - startPos)) / width)) / eScalar;
             if (!strike)
-                u[1][w] = 0.5 * amp * (1 - cos((2 * double_Pi * (w - startPos)) / width));
-            u[2][w] = 0.5 * amp * (1 - cos((2 * double_Pi * (w - startPos)) / width));
+                u[1][w] = u[2][w];
+            ;
         }
     }
 }

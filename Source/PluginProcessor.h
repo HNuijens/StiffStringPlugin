@@ -64,18 +64,22 @@ private:
     void updateParameters();
 
 #ifdef NOEDITOR
+    
     // AudioParameters:
+    // Model
     AudioParameterFloat* fundFreq;
     AudioParameterFloat* sigma0;
     AudioParameterFloat* sigma1;
     AudioParameterFloat* radius;
     AudioParameterFloat* density;
-    // excitation
+    
+    // Excitation
     AudioParameterFloat* excitationType; 
     AudioParameterFloat* bowVelocity;
     AudioParameterFloat* position;
-    AudioParameterInt* width;
+    //AudioParameterInt* width;
 
+    // States
     AudioParameterBool* excited;
     AudioParameterBool* paramChanged;
 #endif // NOEDITOR
@@ -83,10 +87,10 @@ private:
     // String
     StiffString stiffString;
 
-    double ePos;
-    double eAmp = 1.0f;
-    int eWidth;
-    bool isStriked; 
+    double ePos;              // excitation position
+    double eAmp = 1.0f;       // plucked excitation gain 0-1
+    int eWidth = 15;          // plucked excitation width
+    bool isStriked;           // linear excitation type pluck/strike
 
     string eType = "plucked"; // excitation type
 
