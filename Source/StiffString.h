@@ -48,5 +48,5 @@ private:
     NamedValueSet bowParameters;
     Bow bow;
 
-    double eScalar = 100.0;                                                 // scalar for linear excitation
+    double eScalar = 500.0;                                                 // scalar for linear excitation
 };
